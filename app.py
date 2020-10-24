@@ -10,7 +10,15 @@ app = Flask(__name__)
 app.secret_key = 'sami'
 api = Api(app)
 
-jwt = JWT(app, authenticate, identity) # /auth
+
+# config JWT auth key name to be 'email' instead of default 'username'
+# app.config['JWT_AUTH_USERNAME_KEY'] = 'email'
+
+# config JWT to expire within half an hour
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=1800)
+
+app.config['JWT_AUTH_URL_RULE'] = '/login'
+jwt = JWT(app, authenticate, identity) # default /auth
 
 
 
