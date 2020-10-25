@@ -19,9 +19,9 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
 
         if item:
-            return item
+            return item.json()
 
-        return {'message': 'Item not found'} 404
+        return {'message': 'Item not found'}, 404
 
     def post(self, name):
         if ItemModel.find_by_name(name):
@@ -29,10 +29,10 @@ class Item(Resource):
 
         data = Item.parser.parse_args()
 
-        item = {'name': name, 'price': data['price']}
+        item = ItemModel(name, data['price'])
         
         try:
-            ItemModel.insert(item)
+            item.insert()
         except:
             return {"message": "An error occurred inserting the item."}, 500 
         
@@ -61,20 +61,21 @@ class Item(Resource):
         # Once again, print something not in the args to verify everything works
 
         item = ItemModel.find_by_name(name)
-        update_item = {'name': name, 'price': data['price']}
+        update_item = ItemModel(name, data['price'])
+
         if item is None: 
             try:
-                ItemModel.insert(update_item)
+                update_item.insert()
             except:
                 return {"message": "An error occurred inserting the item."}, 500 
   
         else:
             try:
-                ItemModel.update(update_item)
+                update_item.update()
             except:
                 return {"message": "An error occurred updating the item."}, 500 
   
-        return item
+        return update_item.json()
 
 
 class ItemList(Resource):
