@@ -32,7 +32,7 @@ class Item(Resource):
         item = ItemModel(name, data['price'])
         
         try:
-            item.insert()
+            item.save_to_db()
         except:
             return {"message": "An error occurred inserting the item."}, 500 
         
@@ -40,20 +40,26 @@ class Item(Resource):
 
     @jwt_required()
     def delete(self, name):
-        if ItemModel.find_by_name(name) == None:
-            return {'message': "An item with name '{}' is not found.".format(name)}, 400
-
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
-
-        query = "DELETE FROM  items WHERE name=?"
-        cursor.execute(query, (name,))
-
-               
-        connection.commit()
-        connection.close()
+        item = ItemModel.find_by_name(name)
+        if item:
+            item.delete_from_db()
 
         return {'message': 'Item deleted'}
+        
+        # if ItemModel.find_by_name(name) == None:
+        #     return {'message': "An item with name '{}' is not found.".format(name)}, 400
+
+        # connection = sqlite3.connect('data.db')
+        # cursor = connection.cursor()
+
+        # query = "DELETE FROM  items WHERE name=?"
+        # cursor.execute(query, (name,))
+
+               
+        # connection.commit()
+        # connection.close()
+
+        # return {'message': 'Item deleted'}
 
     @jwt_required()
     def put(self, name):
@@ -61,35 +67,34 @@ class Item(Resource):
         # Once again, print something not in the args to verify everything works
 
         item = ItemModel.find_by_name(name)
-        update_item = ItemModel(name, data['price'])
 
         if item is None: 
-            try:
-                update_item.insert()
-            except:
-                return {"message": "An error occurred inserting the item."}, 500 
-  
+            item = ItemModel(name, data['price'])
         else:
-            try:
-                update_item.update()
-            except:
-                return {"message": "An error occurred updating the item."}, 500 
-  
-        return update_item.json()
+            item.price = data['price']
+
+        item.save_to_db()
+
+        return item.json()
 
 
 class ItemList(Resource):
 
   def get(self):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
+      
+    # return {"items": [item.json() for item in ItemModel.query.all()]}
+    return {"items": list(map(lambda item: item.json, ItemModel.query.all()))}
 
-        query = "SELECT * FROM items"
-        result = cursor.execute(query)
+#   def get(self):
+#         connection = sqlite3.connect('data.db')
+#         cursor = connection.cursor()
 
-        items = []
-        for row in result:
-            items.append({'name': row[0], 'price': row[1]})
+#         query = "SELECT * FROM items"
+#         result = cursor.execute(query)
 
-        connection.close()
-        return {"items": items}
+#         items = []
+#         for row in result:
+#             items.append({'name': row[0], 'price': row[1]})
+
+#         connection.close()
+#         return {"items": items}

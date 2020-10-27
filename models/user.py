@@ -8,41 +8,50 @@ class UserModel(db.Model):
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
 
-    def __init__(self, _id, username, password):
-        self.id = _id
+    def __init__(self, username, password):
         self.username = username
         self.password = password
 
     @classmethod
     def find_by_username(cls, username):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
+        return cls.query.filter_by(username=username).first() # here query is euery builder
+        # connection = sqlite3.connect('data.db')
+        # cursor = connection.cursor()
 
-        query = "SELECT * FROM users WHERE username=?"
-        result = cursor.execute(query, (username,))
-        row = result.fetchone() # get first row else none
-        if row:
-            # user = User(row[0], row[1], row[2])
-            user = cls(*row)
-        else: 
-            user = None
+        # query = "SELECT * FROM users WHERE username=?"
+        # result = cursor.execute(query, (username,))
+        # row = result.fetchone() # get first row else none
+        # if row:
+        #     # user = User(row[0], row[1], row[2])
+        #     user = cls(*row)
+        # else: 
+        #     user = None
 
-        connection.close()
-        return user
+        # connection.close()
+        # return user
 
     @classmethod
     def find_by_id(cls, _id):
-        connection = sqlite3.connect('data.db')
-        cursor = connection.cursor()
+        return cls.query.filter_by(id=_id).first() # here query is euery builder
 
-        query = "SELECT * FROM users WHERE id=?"
-        result = cursor.execute(query, (_id,))
-        row = result.fetchone() # get first row else none
-        if row:
-            user = cls(*row)
-        else: 
-            user = None
+        # connection = sqlite3.connect('data.db')
+        # cursor = connection.cursor()
 
-        connection.close()
-        return user
+        # query = "SELECT * FROM users WHERE id=?"
+        # result = cursor.execute(query, (_id,))
+        # row = result.fetchone() # get first row else none
+        # if row:
+        #     user = cls(*row)
+        # else: 
+        #     user = None
 
+        # connection.close()
+        # return user
+  
+    def save_to_db(self):
+      db.session.add(self)
+      db.session.commit()     
+
+    # def delete_from_db(self):
+    #   db.session.delete(self)
+    #   db.session.commit()   

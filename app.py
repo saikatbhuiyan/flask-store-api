@@ -5,8 +5,11 @@ from flask_jwt import JWT, current_identity
 from security import authenticate, identity
 from resources.user import UserRegister
 from resources.item import Item, ItemList
+from _datetime import timedelta
 
+ 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URL'] = 'sqlite:///data.db' # set db to root
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'sami'
 api = Api(app)
