@@ -17,7 +17,9 @@ class UserModel(db.Model):
 
     @classmethod
     def find_by_username(cls, username):
-        return cls.query.filter_by(username=username).first() # here query is euery builder
+        # here query is euery builder
+        return cls.query.filter_by(username=username).first() 
+        
         # connection = sqlite3.connect('data.db')
         # cursor = connection.cursor()
 
