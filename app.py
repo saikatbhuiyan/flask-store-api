@@ -29,7 +29,14 @@ app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=1800)
 
 # app.config['JWT_AUTH_URL_RULE'] = '/login'
 # jwt = JWT(app, authenticate, identity) # default /auth
+
 jwt = JWTManager(app) # not creating /auth
+
+@jwt.user_claims_loader
+def add_claims_to_jwt(identity):
+  if identity == 1:
+    return {"is_admin": True}
+  return {"is_admin": False}
 
 
 api.add_resource(Store, '/store/<string:name>')

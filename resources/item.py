@@ -1,7 +1,7 @@
 import sqlite3
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_claims, get_jwt_identity, jwt_optional
 
 # from security import authenticate, identity
 from models.item import ItemModel
@@ -45,6 +45,10 @@ class Item(Resource):
 
     @jwt_required
     def delete(self, name):
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required.'}, 401
+
         item = ItemModel.find_by_name(name)
         if item:
             item.delete_from_db()
@@ -85,9 +89,18 @@ class Item(Resource):
 
 class ItemList(Resource):
 
-  def get(self):
-      
-    return {"items": [item.json() for item in ItemModel.find_all()]}
+    @jwt_optional
+    def get(self):
+        user_id = get_jwt_identity()
+        items = [item.json() for item in ItemModel.find_all()]
+        if user_id:
+            return {'items': items}
+        return {
+            'items': [item.json() for item in items],
+            'message': 'More data available if you log in.'
+        }, 200
+
+
     # return {"items": [item.json() for item in ItemModel.query.all()]}
     # return {"items": list(map(lambda item: item.json, ItemModel.query.all()))}
 
