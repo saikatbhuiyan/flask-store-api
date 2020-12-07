@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 from werkzeug.security import safe_str_cmp
 from flask_restful import Resource, reqparse 
 from flask_jwt_extended import (
@@ -11,45 +12,6 @@ from flask_jwt_extended import (
     )
 from models.user import UserModel
 from blacklist import BLACKLIST
-
-# class User(object):
-#     def __init__(self, _id, username, password):
-#         self.id = _id
-#         self.username = username
-#         self.password = password
-
-#     @classmethod
-#     def find_by_username(cls, username):
-#         connection = sqlite3.connect('data.db')
-#         cursor = connection.cursor()
-
-#         query = "SELECT * FROM users WHERE username=?"
-#         result = cursor.execute(query, (username,))
-#         row = result.fetchone() # get first row else none
-#         if row:
-#             # user = User(row[0], row[1], row[2])
-#             user = cls(*row)
-#         else: 
-#             user = None
-
-#         connection.close()
-#         return user
-
-#     @classmethod
-#     def find_by_id(cls, _id):
-#         connection = sqlite3.connect('data.db')
-#         cursor = connection.cursor()
-
-#         query = "SELECT * FROM users WHERE id=?"
-#         result = cursor.execute(query, (_id,))
-#         row = result.fetchone() # get first row else none
-#         if row:
-#             user = cls(*row)
-#         else: 
-#             user = None
-
-#         connection.close()
-#         return user
 
 _user_parser = reqparse.RequestParser()
 _user_parser.add_argument('username', 
@@ -67,7 +29,6 @@ _user_parser.add_argument('password',
 class UserRegister(Resource):
 
     def post(self):
-        # data = UserRegister.parser.parse_args()
         data = _user_parser.parse_args()
 
         if UserModel.find_by_username(data["username"]):
@@ -78,23 +39,6 @@ class UserRegister(Resource):
         user.save_to_db()
 
         return {"message": "User created successfully."}, 201
-    # def post(self):
-    #     data = UserRegister.parser.parse_args()
-
-    #     if UserModel.find_by_username(data['username']):
-    #         return {"message": "User already exists"}, 400
-
-    #     connection = sqlite3.connect('data.db')
-    #     cursor = connection.cursor()
-
-    #     query = "INSERT INTO users VALUES (NULL, ?, ?)"
-    #     cursor.execute(query, (data['username'], data['password']))
-
-    #     connection.commit()
-    #     connection.close()
-
-
-    #     return {"message": "User created successfully."}, 201
 
 class User(Resource):
 
@@ -123,7 +67,8 @@ class UserLogin(Resource):
         user = UserModel.find_by_username(data['username'])
 
         if user and safe_str_cmp(user.password, data['password']):
-            access_token = create_access_token(identity=user.id, fresh=True)
+            expires = datetime.timedelta(seconds=3600)
+            access_token = create_access_token(identity=user.id, expires_delta=expires, fresh=True)
             refresh_token = create_refresh_token(user.id)
             return {
                 'access_token': access_token,
@@ -143,6 +88,7 @@ class TokenRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
         current_user = get_jwt_identity()
-        new_token = create_access_token(identity=current_user, fresh=False)
+        expires = datetime.timedelta(seconds=3600)
+        new_token = create_access_token(identity=current_user, expires_delta=expires, fresh=False)
         return {'access_token': new_token}, 200
 

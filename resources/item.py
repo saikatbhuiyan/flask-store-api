@@ -14,6 +14,11 @@ from models.item import ItemModel
 
 class Item(Resource):
     parser = reqparse.RequestParser()
+    parser.add_argument('name',
+        type=str,
+        required=True,
+        help="This field cannot be left blank!"
+    )
     parser.add_argument('price',
         type=float,
         required=True,
@@ -25,24 +30,18 @@ class Item(Resource):
         help="Every item need a store id!"
     )
 
-    @jwt_required
     def get(self, name):
         item = ItemModel.find_by_name(name)
-
         if item:
             return item.json()
-
         return {'message': 'Item not found'}, 404
 
-    @fresh_jwt_required
-    def post(self, name):
-        if ItemModel.find_by_name(name):
-            return {'message': "An item with name '{}' already exists.".format(name)}, 400
-
-        data = Item.parser.parse_args()
-
-        item = ItemModel(name, **data)
-        
+    @jwt_required
+    def post(self):
+        data = Item.parser.parse_args() 
+        if ItemModel.find_by_name(data['name']):
+            return {'message': "An item with name '{}' already exists.".format(data['name'])}, 400
+        item = ItemModel(**data)
         try:
             item.save_to_db()
         except:
@@ -61,21 +60,6 @@ class Item(Resource):
             item.delete_from_db()
 
         return {'message': 'Item deleted'}
-        
-        # if ItemModel.find_by_name(name) == None:
-        #     return {'message': "An item with name '{}' is not found.".format(name)}, 400
-
-        # connection = sqlite3.connect('data.db')
-        # cursor = connection.cursor()
-
-        # query = "DELETE FROM  items WHERE name=?"
-        # cursor.execute(query, (name,))
-
-               
-        # connection.commit()
-        # connection.close()
-
-        # return {'message': 'Item deleted'}
 
     @jwt_required
     def put(self, name):
@@ -96,31 +80,10 @@ class Item(Resource):
 
 class ItemList(Resource):
 
-    @jwt_optional
     def get(self):
-        user_id = get_jwt_identity()
-        items = [item.json() for item in ItemModel.find_all()]
-        if user_id:
-            return {'items': items}
-        return {
-            'items': [item.json() for item in items],
-            'message': 'More data available if you log in.'
-        }, 200
+        return {'items': [item.json() for item in ItemModel.find_all()]}, 200
 
 
     # return {"items": [item.json() for item in ItemModel.query.all()]}
     # return {"items": list(map(lambda item: item.json, ItemModel.query.all()))}
 
-#   def get(self):
-#         connection = sqlite3.connect('data.db')
-#         cursor = connection.cursor()
-
-#         query = "SELECT * FROM items"
-#         result = cursor.execute(query)
-
-#         items = []
-#         for row in result:
-#             items.append({'name': row[0], 'price': row[1]})
-
-#         connection.close()
-#         return {"items": items}
