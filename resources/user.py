@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 from werkzeug.security import safe_str_cmp
 from flask_restful import Resource, reqparse
+from flask import request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -10,8 +11,11 @@ from flask_jwt_extended import (
     jwt_required,
     get_raw_jwt,
 )
+from marshmallow import ValidationError
 from models.user import UserModel
 from blacklist import BLACKLIST
+
+from schemas.user import UserSchema
 
 _user_parser = reqparse.RequestParser()
 _user_parser.add_argument(
@@ -21,16 +25,21 @@ _user_parser.add_argument(
     "password", type=str, required=True, help="This field cannot be blank."
 )
 
+user_schema = UserSchema()
 
 class UserRegister(Resource):
     def post(self):
-        data = _user_parser.parse_args()
-
-        if UserModel.find_by_username(data["username"]):
+        # data = _user_parser.parse_args()   
+        try:
+            user_data = user_schema.load(request.get_json())
+        except ValidationError as err:
+            return err.messages, 400
+        
+        if UserModel.find_by_username(user_data["username"]):
             return {"message": "User already exists"}, 400
 
         # user = UserRegister(data['username'], data['password'])
-        user = UserModel(**data)
+        user = UserModel(**user_data)
         user.save_to_db()
 
         return {"message": "User created successfully."}, 201
@@ -43,7 +52,7 @@ class User(Resource):
         if not user:
             return {"message": "User not found"}, 404
 
-        return user.json()
+        return user_schema.dump(user), 200
 
     @classmethod
     def delete(cls, user_id):
@@ -57,11 +66,15 @@ class User(Resource):
 class UserLogin(Resource):
     @classmethod
     def post(cls):
-        data = _user_parser.parse_args()
+        # data = _user_parser.parse_args()
+        try:
+            user_data = user_schema.load(request.get_json())
+        except ValidationError as err:
+            return err.messages, 400
 
-        user = UserModel.find_by_username(data["username"])
+        user = UserModel.find_by_username(user_data["username"])
 
-        if user and safe_str_cmp(user.password, data["password"]):
+        if user and safe_str_cmp(user.password, user_data["password"]):
             expires = datetime.timedelta(seconds=3600)
             access_token = create_access_token(
                 identity=user.id, expires_delta=expires, fresh=True

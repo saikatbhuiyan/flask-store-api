@@ -11,6 +11,9 @@ from resources.store import Store, StoreList
 from _datetime import timedelta
 from blacklist import BLACKLIST
 
+from marshmallow import ma
+
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"  # set db to root
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -100,4 +103,5 @@ if __name__ == "__main__":
     from db import db
 
     db.init_app(app)
+    ma.init_app(ma)
     app.run(port=5000, debug=True)
