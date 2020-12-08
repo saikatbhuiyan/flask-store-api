@@ -31,15 +31,15 @@ class UserRegister(Resource):
     def post(self):
         # data = _user_parser.parse_args()   
         try:
-            user_data = user_schema.load(request.get_json())
+            user = user_schema.load(request.get_json())
         except ValidationError as err:
             return err.messages, 400
         
-        if UserModel.find_by_username(user_data["username"]):
+        if UserModel.find_by_username(user["username"]):
             return {"message": "User already exists"}, 400
 
         # user = UserRegister(data['username'], data['password'])
-        user = UserModel(**user_data)
+        # user = UserModel(**user)
         user.save_to_db()
 
         return {"message": "User created successfully."}, 201
@@ -72,9 +72,9 @@ class UserLogin(Resource):
         except ValidationError as err:
             return err.messages, 400
 
-        user = UserModel.find_by_username(user_data["username"])
+        user = UserModel.find_by_username(user_data.username)
 
-        if user and safe_str_cmp(user.password, user_data["password"]):
+        if user and safe_str_cmp(user.password, user_data.password):
             expires = datetime.timedelta(seconds=3600)
             access_token = create_access_token(
                 identity=user.id, expires_delta=expires, fresh=True
