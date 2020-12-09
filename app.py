@@ -4,14 +4,20 @@ from flask_restful import Api
 # from flask_jwt import JWT, current_identity
 from flask_jwt_extended import JWTManager
 
+from marshmallow import ValidationError
+
 # from security import authenticate, identity
-from resources.user import UserRegister, User, UserLogin, UserLogout, TokenRefresh
-from resources.item import Item, ItemList
+from resources.user import (
+    UserRegister, 
+    User, 
+    UserLogin, 
+    UserLogout, 
+    TokenRefresh)
+from resources.item import (Item, ItemList)
 from resources.store import Store, StoreList
 from _datetime import timedelta
 from blacklist import BLACKLIST
 
-from marshmallow import ma
 
 
 app = Flask(__name__)
@@ -29,6 +35,7 @@ def create_tables():
     db.create_all()  # Store -> StoreModel
 
 
+
 # config JWT auth key name to be 'email' instead of default 'username'
 # app.config['JWT_AUTH_USERNAME_KEY'] = 'email'
 
@@ -37,6 +44,11 @@ app.config["JWT_EXPIRATION_DELTA"] = timedelta(seconds=1800)
 
 # app.config['JWT_AUTH_URL_RULE'] = '/login'
 # jwt = JWT(app, authenticate, identity) # default /auth
+
+
+@app.errorhandler(ValidationError)
+def handle_marshmallow_validation(err):
+    return jsonify(err.messages), 400
 
 jwt = JWTManager(app)  # not creating /auth
 
@@ -101,7 +113,8 @@ api.add_resource(TokenRefresh, "/refresh")
 
 if __name__ == "__main__":
     from db import db
+    from ma import ma
 
     db.init_app(app)
-    ma.init_app(ma)
+    ma.init_app(app)
     app.run(port=5000, debug=True)

@@ -1,6 +1,6 @@
 import sqlite3
 from flask import Flask, request
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_claims,
@@ -8,48 +8,39 @@ from flask_jwt_extended import (
     jwt_optional,
     fresh_jwt_required,
 )
+from marshmallow import ValidationError
 
-# from security import authenticate, identity
 from models.item import ItemModel
+from schemas.item import ItemSchema
+
+item_schema = ItemSchema()
+item_list_schema = ItemSchema(many=True)
 
 
 BLANK_ERROR = "'{}' cannot be blank!"
 ITEM_NOT_FOUND = "Item not found"
 
 class Item(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument(
-        "name", type=str, required=True, help=BLANK_ERROR.format('name')
-    )
-    parser.add_argument(
-        "price", type=float, required=True, help=BLANK_ERROR.format('price')
-    )
-    parser.add_argument(
-        "store_id", type=int, required=True, help=BLANK_ERROR.format('store_id')
-    )
 
     @classmethod
     def get(cls, name):
         item = ItemModel.find_by_name(name)
         if item:
-            return item.json()
+            return item_schema.dump(item), 200
         return {"message": ITEM_NOT_FOUND}, 404
 
     @classmethod
     @jwt_required
     def post(cls):
-        data = Item.parser.parse_args()
-        if ItemModel.find_by_name(data["name"]):
+        item = item_schema.load(request.get_json())
+        if ItemModel.find_by_name(item['name']):
             return {
-                "message": "An item with name '{}' already exists.".format(data["name"])
+                "message": "An item with name '{}' already exists.".format(item['name'])
             }, 400
-        item = ItemModel(**data)
-        try:
-            item.save_to_db()
-        except:
-            return {"message": "An error occurred inserting the item."}, 500
-
-        return item.json(), 201
+        item = ItemModel(**item)
+        item.save_to_db()
+   
+        return item_schema.dump(item), 201
 
     @classmethod
     @jwt_required
@@ -67,25 +58,29 @@ class Item(Resource):
     @classmethod
     @jwt_required
     def put(cls, name):
-        data = Item.parser.parse_args()
+        item_json = request.get_json()
         # Once again, print something not in the args to verify everything works
 
         item = ItemModel.find_by_name(name)
 
         if item is None:
-            item = ItemModel(name, data["price"], data["store_id"])
+            item.price = item_json['price']
         else:
-            item.price = data["price"]
-
+            item_json['name'] = name
+            
+            try:
+                item = item_schema.load(item_json)
+                
+            except ValidationError as err:
+                return err.messages, 400
+            
         item.save_to_db()
 
-        return item.json()
+        return item_schema.dump(item), 200
 
 
 class ItemList(Resource):
+    
     @classmethod
     def get(cls):
-        return {"items": [item.json() for item in ItemModel.find_all()]}, 200
-
-    # return {"items": [item.json() for item in ItemModel.query.all()]}
-    # return {"items": list(map(lambda item: item.json, ItemModel.query.all()))}
+        return {"items": item_list_schema.dump(ItemModel.find_all())}, 200
