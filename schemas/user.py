@@ -22,5 +22,5 @@ class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = UserModel
         load_only = ("password",)
-        dump_only = ("id",)
+        dump_only = ("id", "activated")
         include_fk = True
