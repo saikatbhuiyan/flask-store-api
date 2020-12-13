@@ -20,6 +20,7 @@ from models.user import UserModel
 from blacklist import BLACKLIST
 
 from schemas.user import UserSchema
+from libs.mailgun import MailGunException
 
 USER_ALREADY_EXISTS = "A user with this username already exists"
 EMAIL_ALREADY_EXISTS = "A user with that email already exists."
@@ -53,17 +54,20 @@ class UserRegister(Resource):
             user.save_to_db()
             user.send_confirmation_email()
             return {"message": SUCCESS_REGISTER_MESSAGE}, 201
+        except MailGunException as e:
+            user.delete_from_db()  # rollback
+            return {"message": str(e)}, 500
         except:  # failed to save user to db
             traceback.print_exc()
             return {"message": FAILED_TO_CREATE}, 500
 
 
 class User(Resource):
-    
+
     @classmethod
     def get(cls, user_id):
         user = UserModel.find_by_id(user_id)
-        
+
         if not user:
             return {"message": USER_NOT_FOUND}, 404
 
@@ -74,14 +78,14 @@ class User(Resource):
         user = UserModel.find_by_id(user_id)
         if not user:
             return {"message": USER_NOT_FOUND}, 404
-        
+
         user.delete_from_db()
-        
+
         return {"message": "User delete"}, 200
 
 
 class UserLogin(Resource):
-    
+
     @classmethod
     def post(cls):
         try:

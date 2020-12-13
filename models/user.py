@@ -1,11 +1,8 @@
-from db import db
+from requests import Response
 from flask import request, url_for
-from requests import Response, post
 
-MAILGUN_DOMAIN = "sandboxaf5bd86dcdf3432fa1da7b1cbe4b4096.mailgun.org"
-MAILGUN_API_KEY = "99b76806e5b8fff001e40b4197ed66c9-4879ff27-b8c51d14"
-FROM_TITLE = "Stores REST API"
-FROM_EMAIL = "https://api.mailgun.net/v3/sandboxaf5bd86dcdf3432fa1da7b1cbe4b4096.mailgun.org"
+from db import db
+from libs.mailgun import Mailgun
 
 
 class UserModel(db.Model):
@@ -30,20 +27,12 @@ class UserModel(db.Model):
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first() 
 
-    def send_confirmation_email(self):
-        # http://127.0.0.1:5000/
-        link = request.url_root[0:-1] + url_for("userconfirm", user_id=self.id)
-
-        return post(
-            f"http://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages",
-            auth=("api", MAILGUN_API_KEY),
-            data={
-                "from": f"{FROM_TITLE} <{FROM_EMAIL}>",
-                "to": self.email,
-                "subject": "Registration confirmation",
-                "text": f"Please click the link to confirm your registration: {link}"
-            },
-        )
+    def send_confirmation_email(self) -> Response:
+        subject = "Registration Confirmation"
+        link = request.url_root[:-1] + url_for("userconfirm", user_id=self.id)
+        text = f"Please click the link to confirm your registration: {link}"
+        html = f"<html>Please click the link to confirm your registration: <a href={link}>link</a></html>"
+        return Mailgun.send_email([self.email], subject, text, html)
 
     def save_to_db(self):
         db.session.add(self)
