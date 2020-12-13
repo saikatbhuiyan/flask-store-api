@@ -8,7 +8,7 @@ class StoreModel(db.Model):
     name = db.Column(db.String(80), nullable=False, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False,)
     # user = db.relationship("UserModel")
-    items = db.relationship("ItemModel", lazy="dynamic")
+    items = db.relationship("ItemModel", lazy="dynamic", cascade="all, delete-orphan")
     # this is lists of items for a store
     # if we lot of items in db `lazy='dynamic'` will not do that, we have to use self.items.all() insted of self.items
 

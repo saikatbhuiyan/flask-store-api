@@ -10,13 +10,12 @@ from models.store import StoreModel
 store_schema = StoreSchema()
 store_list_schema = StoreSchema(many=True)
 
+
 class Store(Resource):
 
     @classmethod
     @jwt_required
     def get(cls, name):
-        user = request.user
-        print("request.user: ", user)
         store = StoreModel.find_by_name(name)
         if store:
             return store_schema.dump(store)
