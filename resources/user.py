@@ -48,7 +48,7 @@ class UserRegister(Resource):
             return {"message": str(e)}, 500
         except:  # failed to save user to db
             traceback.print_exc()
-            user.delete_from_db()  # rollback
+            # user.delete_from_db()  # rollback
             return {"message": gettext("user_error_creating")}, 500
 
 
