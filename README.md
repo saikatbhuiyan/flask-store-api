@@ -16,5 +16,8 @@ source venv/bin/activate
 .\venv\Scripts\activate.bat (Windows)
 git clone git_url
 cd store-api-flask
+run flask db init
+run flask db migrate
+run flask db upgrade
 python app.py
 ```
