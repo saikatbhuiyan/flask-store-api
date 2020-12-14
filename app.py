@@ -4,8 +4,8 @@ from flask_restful import Api
 
 # from flask_jwt import JWT, current_identity
 from flask_jwt_extended import JWTManager
-
 from marshmallow import ValidationError
+from dotenv import load_dotenv
 
 # from security import authenticate, identity
 from resources.user import (
@@ -24,14 +24,12 @@ from blacklist import BLACKLIST
 
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")  # set db to root
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["PROPAGATE_EXCEPTIONS"] = True  # this is return the proper error to us
-app.config["JWT_BLACKLIST_ENABLED"] = True
-app.config["JWT_BLACKLIST_TOKEN_CHECKS"] = ["access", "refresh"]
-app.secret_key = os.environ.get(
-    "APP_SECRET_KEY"
-)  # could do app.config['JWT_SECRET_KEY'] if we preferapi = Api(app)
+load_dotenv(".env", verbose=True)
+app.config.from_object("default_config")  # load default configs from default_config.py
+app.config.from_envvar(
+    "APPLICATION_SETTINGS"
+)  # override with config.py (APPLICATION_SETTINGS points to config.py)
+
 api = Api(app)
 
 @app.before_first_request
@@ -114,7 +112,7 @@ api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout")
 api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(Confirmation, "/user_confirm/<string:confirmation_id>")
-api.add_resource(ConfirmationByUser, "/confirmation/user/<int:user_id>")
+api.add_resource(ConfirmationByUser, "/confirmation/<int:user_id>")
 # api.add_resource(UserConfirm, "/user_confirm/<int:user_id>")
 
 

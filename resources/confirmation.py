@@ -36,8 +36,9 @@ class Confirmation(Resource):
         confirmation.save_to_db()
 
         headers = {"Content-Type": "text/html"}
+
         return make_response(
-            render_template('confirmation_page.html', email=confirmation.user.email),
+            render_template("confirmation_page.html", email=confirmation.user.email),
             200,
             headers,
         )
@@ -72,7 +73,7 @@ class ConfirmationByUser(Resource):
         """
         user = UserModel.find_by_id(user_id)
         if not user:
-            return {"message": USER_NOT_FOUND}, 404
+            return {"message": gettext("user_not_found")}, 404
 
         try:
             # find the most current confirmation for the user

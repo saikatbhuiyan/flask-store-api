@@ -35,9 +35,10 @@ class UserRegister(Resource):
 
         if UserModel.find_by_email(user["email"]):
             return {"message": gettext("user_email_exists")}, 400
+        user = UserModel(**user)
 
         try:
-            user = UserModel(**user)
+            user.save_to_db()
             confirmation = ConfirmationModel(user.id)
             confirmation.save_to_db()
             user.send_confirmation_email()

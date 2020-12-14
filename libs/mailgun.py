@@ -14,10 +14,12 @@ class MailGunException(Exception):
 
 
 class Mailgun:
+
     MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY", None)
     MAILGUN_DOMAIN = os.environ.get("MAILGUN_DOMAIN", None)
+
     FROM_TITLE = "Stores REST API"
-    FROM_EMAIL = os.environ.get("FROM_EMAIL", None)
+    FROM_EMAIL = f"do-not-reply@{MAILGUN_DOMAIN}"
 
     @classmethod
     def send_email(
