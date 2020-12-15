@@ -35,5 +35,7 @@
   "image_illegal_file_name": "Illegal filename '{}' requested.",
   "image_not_found": "Image '{}' not found.",
   "image_deleted": "Image '{}' deleted.",
-  "image_delete_failed": "Internal server error! Failed to delete image."
+  "image_delete_failed": "Internal server error! Failed to delete image.",
+
+  "order_item_by_id_not_found": "An item <id={}> in this order cannot be found."
 }
