@@ -10,6 +10,7 @@ from flask_jwt_extended import (
     jwt_refresh_token_required,
     jwt_required,
     get_raw_jwt,
+    fresh_jwt_required,
 )
 
 from marshmallow import ValidationError
@@ -117,6 +118,23 @@ class TokenRefresh(Resource):
             identity=current_user, expires_delta=expires, fresh=False
         )
         return {"access_token": new_token}, 200
+
+
+class SetPassword(Resource):
+    @classmethod
+    @fresh_jwt_required
+    def post(cls):
+        user_json = request.get_json()
+        user_data = user_schema.load(user_json)
+        user = UserModel.find_by_username(user_data.username)
+
+        if not user:
+            return {"message": gettext("user_not_found")}, 400
+
+        user.password = user_data.password
+        user.save_to_db()
+
+        return {"message": gettext("user_password_updated")}, 201
 
 
 # class UserConfirm(Resource):

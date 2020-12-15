@@ -28,6 +28,7 @@
   "user_not_confirmed": "You have not confirmed registration, please check your email <{}>.",
   "user_error_creating": "Internal server error. Failed to create user.",
   "user_registered": "Account created successfully, an email with an activation link has been sent to your email address, please check.",
+  "user_password_updated": "User password updated successfully.",
 
   "image_uploaded": "Image '{}' uploaded.",
   "image_illegal_extension": "Extension '{}' is not allowed.",
