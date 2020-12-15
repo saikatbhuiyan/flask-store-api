@@ -20,7 +20,7 @@ from resources.confirmation import Confirmation, ConfirmationByUser
 from resources.image import ImageUpload, Image, AvatarUpload, Avatar
 from libs.image_helper import IMAGE_SET
 from resources.github_login import GithubLogin, GithubAuthorize
-
+from resources.order import Order
 
 app = Flask(__name__)
 app.config.from_object("default_config")  # load default configs from default_config.py
@@ -70,6 +70,8 @@ api.add_resource(ImageUpload, "/upload/image")
 api.add_resource(Image, "/image/<string:filename>")
 api.add_resource(AvatarUpload, "/upload/avatar")
 api.add_resource(Avatar, "/avatar/<int:user_id>")
+api.add_resource(Order, "/order")
+
 
 db.init_app(app)
 if __name__ == "__main__":
