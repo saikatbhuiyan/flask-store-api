@@ -6,8 +6,12 @@ from flask_uploads import configure_uploads, patch_request_class
 from dotenv import load_dotenv
 from flask_migrate import Migrate
 
+load_dotenv(".env", verbose=True)
+
+
 from db import db
 from ma import ma
+from oa import oauth
 from blacklist import BLACKLIST
 from resources.user import UserRegister, UserLogin, User, TokenRefresh, UserLogout
 from resources.item import Item, ItemList
@@ -15,10 +19,10 @@ from resources.store import Store, StoreList
 from resources.confirmation import Confirmation, ConfirmationByUser
 from resources.image import ImageUpload, Image, AvatarUpload, Avatar
 from libs.image_helper import IMAGE_SET
+from resources.github_login import GithubLogin, GithubAuthorize
 
 
 app = Flask(__name__)
-load_dotenv(".env", verbose=True)
 app.config.from_object("default_config")  # load default configs from default_config.py
 app.config.from_envvar(
     "APPLICATION_SETTINGS"
@@ -55,6 +59,8 @@ api.add_resource(ItemList, "/items")
 api.add_resource(UserRegister, "/register")
 api.add_resource(User, "/user/<int:user_id>")
 api.add_resource(UserLogin, "/login")
+api.add_resource(GithubLogin, "/login/github")
+api.add_resource(GithubAuthorize, "/login/github/authorized")
 api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(UserLogout, "/logout")
 api.add_resource(Confirmation, "/user_confirm/<string:confirmation_id>")
@@ -67,4 +73,5 @@ api.add_resource(Avatar, "/avatar/<int:user_id>")
 db.init_app(app)
 if __name__ == "__main__":
     ma.init_app(app)
+    oauth.init_app(app)
     app.run(port=5000, debug=True)
