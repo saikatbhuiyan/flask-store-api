@@ -35,8 +35,8 @@ class Mailgun:
             raise MailGunException(FAILED_LOAD_DOMAIN)
 
         response = post(
-            f"https://api.mailgun.net/v3/{cls.MAILGUN_DOMAIN}/messages",
-            auth=("api", cls.MAILGUN_API_KEY),
+            f"https://api.mailgun.net/v3/sandboxaf5bd86dcdf3432fa1da7b1cbe4b4096.mailgun.org/messages",
+            auth=("api", "99b76806e5b8fff001e40b4197ed66c9-4879ff27-b8c51d14"),
             data={
                 "from": f"{cls.FROM_TITLE} <{cls.FROM_EMAIL}>",
                 "to": email,
@@ -45,7 +45,7 @@ class Mailgun:
                 "html": html,
             },
         )
-
+        print(response.json())
         if response.status_code != 200:
             raise MailGunException(ERROR_SENDING_EMAIL)
 

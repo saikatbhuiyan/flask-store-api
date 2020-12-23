@@ -64,7 +64,7 @@ api.add_resource(GithubAuthorize, "/login/github/authorized")
 api.add_resource(SetPassword, "/user/password")
 api.add_resource(TokenRefresh, "/refresh")
 api.add_resource(UserLogout, "/logout")
-api.add_resource(Confirmation, "/user_confirm/<string:confirmation_id>")
+api.add_resource(Confirmation, "/confirmation/<string:confirmation_id>")
 api.add_resource(ConfirmationByUser, "/confirmation/user/<int:user_id>")
 api.add_resource(ImageUpload, "/upload/image")
 api.add_resource(Image, "/image/<string:filename>")
@@ -74,6 +74,7 @@ api.add_resource(Order, "/order")
 
 
 db.init_app(app)
+
 if __name__ == "__main__":
     ma.init_app(app)
     oauth.init_app(app)

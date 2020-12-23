@@ -42,9 +42,10 @@ class UserModel(db.Model):
         link = request.url_root[:-1] + url_for(
             "confirmation", confirmation_id=self.most_recent_confirmation.id
         )
+        print(link)
         text = f"Please click the link to confirm your registration: {link}"
         html = f"<html>Please click the link to confirm your registration: <a href={link}>link</a></html>"
-        return Mailgun.send_email(self.email, subject, text, html)
+        return Mailgun.send_email([self.email], subject, text, html)
 
     def save_to_db(self):
         db.session.add(self)
