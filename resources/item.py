@@ -40,7 +40,7 @@ class Item(Resource):
         item = ItemModel(**item)
         item.save_to_db()
    
-        return item_schema.dump(item), 201
+        return item_schema.dump(item), 2 01
 
     @classmethod
     @jwt_required
